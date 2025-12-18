@@ -39,10 +39,25 @@ Customer segmentation analysis combining **rule-based RFM methodology** with **u
 ## 📁 Project Structure
 ```
 rfm-customer-segmentation/
-├── data/                    # Cleaned dataset
-├── notebooks/               # Analysis notebooks
-├── outputs/                 # Visualizations
-└── README.md
+├── data/
+│   ├── online_retail_clean.csv.zip    # Cleaned dataset (394k transactions)
+│   └── README.md                       # Data documentation
+│
+├── visualizations/
+│   ├── 1_rfm_segment_overview.png     # Business segments dashboard
+│   ├── 2_rfm_executive_summary.png    # Executive summary
+│   ├── 3_rfm_3d_scatter.png           # 3D RFM distribution
+│   ├── 4_rfm_action_cards.png         # Marketing playbook
+│   ├── 5_kmeans_elbow_method.png      # Model selection
+│   ├── 6_kmeans_comparison.png        # RFM vs K-Means validation
+│   └── README.md                       # Visualization details
+│
+├── notebooks/
+│   └── README.md                       # Notebook placeholder
+│
+├── LICENSE                             # MIT License
+├── .gitignore                          # Python gitignore
+└── README.md                           # This file
 ```
 
 ---
