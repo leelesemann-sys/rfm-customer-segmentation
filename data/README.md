@@ -15,4 +15,19 @@ Cleaned dataset with 393,915 transactions from 4,290 customers.
 - Country: Customer country
 - TotalAmount: Quantity × UnitPrice
 
-**Source:** UCI ML Repository - Online Retail Dataset
+**Data Cleaning Process:**
+- Original: 541,909 transactions
+- Removed: 135,080 rows without CustomerID (24.93%)
+- Removed: 8,905 cancelled orders
+- Removed: Negative quantities/prices
+- Removed: Top 1% outliers (>£10k transactions)
+- Final: 393,915 transactions (72.7% retention)
+
+**Original Data Source:**  
+[UCI Machine Learning Repository - Online Retail Dataset](https://archive.ics.uci.edu/ml/datasets/online+retail)
+
+
+**To reproduce cleaning:** See `notebooks/rfm_analysis.ipynb`
+
+
+
