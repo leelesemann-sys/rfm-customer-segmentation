@@ -162,7 +162,7 @@ rfm-customer-segmentation/
 ---
 
 ### 6. Validation & Comparison
-![K-Means Comparison](visualizations/6_kmeans_comparison.png)
+![K-Means Comparison](visualizations/6_kmeans_final_comparison.png)
 
 **Key Findings:**
 - 95% overlap between RFM Champions and K-Means VIPs
