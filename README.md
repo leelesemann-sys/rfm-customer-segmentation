@@ -1,0 +1,158 @@
+# RFM Customer Segmentation - ML-Driven Approach
+
+[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+## 🎯 Project Overview
+
+Customer segmentation analysis combining **rule-based RFM methodology** with **unsupervised K-Means clustering** to identify high-value customer segments.
+
+**Key Achievement:** Identified 8 Super-VIP customers (0.2% of base) contributing £580k revenue from 4,290 customer dataset.
+
+---
+
+## 📊 Business Impact
+
+- **£6.7M** total revenue analyzed
+- **£4.3M** (63.8%) in Champions segment
+- **£548k** revenue at risk (At Risk segment)
+- **8 Super-VIPs** discovered (avg. £72k spend)
+- **95% validation** between RFM and K-Means
+
+---
+
+## 🛠️ Tech Stack
+
+**Languages & Libraries:**
+- Python 3.11: pandas, numpy, scikit-learn
+- Visualization: matplotlib, seaborn
+- ML: K-Means, Elbow Method, Silhouette Analysis
+
+**Skills Demonstrated:**
+- Data cleaning (541k → 394k transactions)
+- Feature engineering (RFM scoring)
+- Unsupervised learning
+- Business translation
+
+---
+
+## 📁 Project Structure
+```
+rfm-customer-segmentation/
+├── data/                    # Cleaned dataset
+├── notebooks/               # Analysis notebooks
+├── outputs/                 # Visualizations
+└── README.md
+```
+
+---
+
+## 🚀 Key Features
+
+### 1. RFM Segmentation (Rule-Based)
+- 10 business segments with actionable strategies
+- Segments: Champions, Loyal, At Risk, Can't Lose Them, etc.
+- Quintile-based scoring (1-5 scale)
+
+### 2. K-Means Clustering (ML-Driven)
+- Optimal K selection via Elbow Method + Silhouette Score
+- 4 data-driven clusters identified
+- Outlier detection (8 Super-VIP customers)
+
+### 3. Validation
+- 95% overlap between RFM Champions and K-Means VIPs
+- Complementary insights: RFM for marketing, K-Means for outliers
+
+---
+
+## 📈 Results
+
+### Business Segments Identified:
+
+**High Priority:**
+- **Champions** (958): £4.3M revenue - VIP programs, loyalty rewards
+- **At Risk** (346): £476k at risk - Win-back campaigns, 20% discount
+- **Can't Lose Them** (23): £48k - Personal outreach, account managers
+
+**Medium Priority:**
+- **Loyal Customers** (742): £1.0M - Upselling, cross-sell
+- **New Customers** (316): £132k - Onboarding, next purchase incentive
+
+**Low Priority:**
+- **Lost** (1,079): £304k - Low-cost reactivation only
+- **Hibernating** (500): £279k - Mass email campaigns
+
+### ML Insights:
+
+**K-Means identified 4 clusters:**
+1. **Inactive** (1,061): 248 days avg. recency
+2. **Regular** (2,999): Mainstream customers
+3. **VIP Regulars** (222): 21 purchases avg., £9k spend
+4. **Super VIPs** (8): 108 purchases avg., £72k spend
+
+---
+
+## 💡 Methodology
+
+**Data Pipeline:**
+1. Data cleaning (removed 135k invalid rows)
+2. RFM calculation (Recency, Frequency, Monetary)
+3. Quintile scoring (1-5 for each dimension)
+4. Rule-based segmentation (10 segments)
+5. ML validation (K-Means clustering)
+6. Cross-analysis (RFM vs. K-Means)
+
+**K-Means Optimization:**
+- Feature scaling (StandardScaler)
+- Tested K=2 to K=15
+- Selected K=4 (optimal balance)
+- Silhouette Score: 0.601
+
+---
+
+## 📊 Dataset
+
+**Source:** UCI Machine Learning Repository - Online Retail  
+**Period:** Dec 2010 - Dec 2011 (12.4 months)  
+**Size:** 541,909 → 393,915 transactions (72.7% retained)  
+**Customers:** 4,290 unique  
+**Geography:** UK-based (89.1%)
+
+---
+
+## 🎯 Business Recommendations
+
+**Immediate Actions:**
+1. Dedicated account management for 8 Super-VIPs
+2. Win-back campaign for 346 At-Risk customers
+3. VIP loyalty program for 958 Champions
+
+**Strategic Initiatives:**
+4. Improve New → Loyal conversion (currently 48%)
+5. Upselling campaigns for Loyal customers
+6. Low-cost reactivation for Hibernating segment
+
+---
+
+## 📚 Future Enhancements
+
+- [ ] Predictive CLV model (Random Forest)
+- [ ] Churn prediction classifier
+- [ ] Azure ML automated pipeline
+- [ ] Power BI interactive dashboard
+
+---
+
+## 👤 Author
+
+**Lee Christian Lesemann**  
+Azure AI Engineer | Customer Analytics  
+*Previous: Sanofi, Abbott, Teva, IQVIA*
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue)](YOUR_LINKEDIN_URL)
+
+---
+
+## 📄 License
+
+MIT License - see LICENSE file for details
