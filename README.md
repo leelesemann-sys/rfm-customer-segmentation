@@ -7,8 +7,23 @@
 
 Customer segmentation analysis combining **rule-based RFM methodology** with **unsupervised K-Means clustering** to identify high-value customer segments.
 
-**Key Achievement:** Identified 8 Super-VIP customers (0.2% of base) contributing £580k revenue from 4,290 customer dataset.
+**Key Achievements:**
+- Segmented 4,290 customers (£6.7M revenue) into 10 actionable business groups
+- Identified £548k at-risk revenue across 346 customers requiring immediate intervention
+- Discovered 8 Super-VIP outliers (0.2% of base) generating £580k revenue (avg. £72k each)
+- Achieved 95% validation between rule-based RFM and unsupervised K-Means clustering
+- Delivered segment-specific marketing strategies with clear ROI projections
 
+**Key Achievements:**
+- Analyzed £6.7M customer base, identifying £548k at-risk revenue and 958 Champions (£4.3M)
+- Discovered 8 Super-VIP customers (£72k avg. spend) through ML-driven outlier detection
+- Achieved 95% validation between RFM segmentation and K-Means clustering (10 segments)
+
+
+**Key Achievements:**
+- **Revenue Impact:** Identified £548k at-risk revenue + 8 Super-VIPs (£580k) from £6.7M base
+- **Segmentation:** 10 actionable customer groups with tailored marketing strategies
+- **Validation:** 95% overlap between rule-based RFM and unsupervised K-Means methods
 ---
 
 ## 📊 Business Impact
