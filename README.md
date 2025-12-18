@@ -228,7 +228,7 @@ rfm-customer-segmentation/
 Azure AI Engineer | Customer Analytics Consultant   
 *Previous: Sanofi, CSL Behring, Abbott, Teva Pharmaceuticals, IQVIA*
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue)](www.linkedin.com/in/leelesemann)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue)](https://www.linkedin.com/in/leelesemann)
 
 ---
 
