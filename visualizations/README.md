@@ -16,7 +16,7 @@ All visualizations created with matplotlib and seaborn.
 ## 📈 Results & Visualizations
 
 ### 1. RFM Segment Overview
-![RFM Segment Overview](visualizations/1_rfm_segment_overview.png)
+![RFM Segment Overview](1_rfm_segment_overview.png)
 
 **Key Insights:**
 - Customer distribution across 10 business segments
