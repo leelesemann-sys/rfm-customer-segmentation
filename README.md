@@ -146,10 +146,10 @@ rfm-customer-segmentation/
 ## 👤 Author
 
 **Lee Christian Lesemann**  
-Azure AI Engineer | Customer Analytics  
-*Previous: Sanofi, Abbott, Teva, IQVIA*
+Azure AI Engineer | Customer Analytics Consultant   
+*Previous: Sanofi, CSL Behring, Abbott, Teva Pharmaceuticals, IQVIA*
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue)](YOUR_LINKEDIN_URL)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue)](www.linkedin.com/in/leelesemann)
 
 ---
 
