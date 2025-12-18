@@ -27,7 +27,7 @@ All visualizations created with matplotlib and seaborn.
 ---
 
 ### 2. Executive Summary Dashboard
-![Executive Summary](visualizations/2_rfm_executive_summary.png)
+![Executive Summary](2_rfm_executive_summary.png)
 
 **Strategic Insights:**
 - **Revenue Risk Profile:** 79% safe, 8% at risk, 13% lost/growth
@@ -37,7 +37,7 @@ All visualizations created with matplotlib and seaborn.
 ---
 
 ### 3. Marketing Action Cards
-![Action Cards](visualizations/3_rfm_action_cards.png)
+![Action Cards](3_rfm_action_cards.png)
 
 **Segment-Specific Strategies:**
 - **Champions** (958): VIP programs, early access, referral bonuses
@@ -47,7 +47,7 @@ All visualizations created with matplotlib and seaborn.
 ---
 
 ### 4. K-Means Model Selection
-![K-Means Elbow Method](visualizations/4_kmeans_elbow_method.png)
+![K-Means Elbow Method](4_kmeans_elbow_method.png)
 
 **ML Methodology:**
 - Elbow Method for optimal K selection
@@ -58,7 +58,7 @@ All visualizations created with matplotlib and seaborn.
 ---
 
 ### 5. RFM vs K-Means Comparison
-![K-Means Comparison](visualizations/5_kmeans_comparison.png)
+![K-Means Comparison](5_kmeans_comparison.png)
 
 **Validation Results:**
 - **95% overlap** between RFM Champions and K-Means VIP Regulars
