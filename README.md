@@ -92,6 +92,70 @@ rfm-customer-segmentation/
 
 ---
 
+## 📈 Results with Visualizations
+
+### 1. RFM Segment Overview
+![RFM Segment Overview](visualizations/1_rfm_segment_overview.png)
+
+**Key Insights:**
+- Customer distribution across 10 business segments
+- Revenue contribution by segment (Champions: 63.8%)
+- Average revenue per customer comparison
+- Segment priority matrix (customer % vs revenue %)
+
+---
+
+### 2. Executive Summary Dashboard
+![Executive Summary](visualizations/2_rfm_executive_summary.png)
+
+**Strategic Insights:**
+- **Revenue Risk Profile:** 79% safe, 8% at risk, 13% lost/growth
+- **Customer Lifecycle:** Progression funnel from New → Champion
+- **Action Priority Map:** RESCUE, PREVENT, GROW, NURTURE, RETAIN
+- **12-Month Projection:** £4.3M difference between scenarios
+
+---
+
+### 3. RFM 3D Distribution
+![3D RFM](visualizations/3_rfm_3d_scatter.png)
+
+**Multi-Dimensional Analysis:**
+- 3D visualization of Recency, Frequency, Monetary relationships
+- Clear visual separation between customer segments
+- Outlier identification in 3D space
+
+---
+
+### 4. Marketing Action Cards
+![Action Cards](visualizations/4_rfm_action_cards.png)
+
+**Actionable Strategies:**
+- **Champions** (958): VIP programs, early access
+- **At Risk** (346): Win-back campaigns, 20% discount
+- **Can't Lose Them** (23): Dedicated account management
+
+---
+
+### 5. K-Means Optimization
+![K-Means Elbow](visualizations/5_kmeans_elbow_method.png)
+
+**Model Selection:**
+- Elbow Method, Silhouette Score, Davies-Bouldin analysis
+- Tested K=2 to K=15
+- Selected K=4 for optimal balance
+
+---
+
+### 6. Validation & Comparison
+![K-Means Comparison](visualizations/6_kmeans_comparison.png)
+
+**Key Findings:**
+- 95% overlap between RFM Champions and K-Means VIPs
+- 8 Super-VIP outliers identified (£72k avg. spend)
+- 3D cluster visualization comparison
+
+---
+
 ## 💡 Methodology
 
 **Data Pipeline:**
