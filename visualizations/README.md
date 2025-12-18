@@ -1,1 +1,13 @@
+# Visualizations
 
+Portfolio-ready dashboards showcasing customer segmentation analysis.
+
+## Files
+
+1. **1_rfm_segment_overview.png** - Business segments overview with customer distribution, revenue contribution, and priority matrix
+2. **2_rfm_executive_summary.png** - Executive dashboard with revenue risk profile, customer lifecycle, and 12-month projections
+3. **3_rfm_action_cards.png** - Marketing playbook with actionable strategies for each segment
+4. **4_kmeans_elbow_method.png** - ML model selection process (Elbow Method, Silhouette Score)
+5. **5_kmeans_comparison.png** - RFM vs K-Means validation and cluster analysis
+
+All visualizations created with matplotlib and seaborn.
