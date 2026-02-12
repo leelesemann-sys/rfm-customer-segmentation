@@ -2,7 +2,8 @@
 """CLI entrypoint for the full RFM customer segmentation pipeline.
 
 Loads cleaned transaction data, computes RFM scores and segments,
-runs K-Means clustering, and regenerates all six visualizations.
+runs K-Means and GMM clustering with multiple preprocessing methods,
+and generates seven visualizations including an algorithm comparison.
 
 Usage
 -----
@@ -716,6 +717,100 @@ def plot_kmeans_comparison(rfm, output_dir):
     save_figure(fig, output_dir, "6_kmeans_final_comparison.png")
 
 
+# ------------------------------------------------------------------
+# 7. Algorithm Comparison Dashboard
+# ------------------------------------------------------------------
+
+def plot_algorithm_comparison(comparison_df, hopkins_log, hopkins_yj, output_dir):
+    """4-panel: silhouette comparison, davies-bouldin comparison,
+    Hopkins statistic, BIC/AIC for GMM."""
+    fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+    fig.suptitle(
+        "Algorithm Comparison: K-Means vs GMM",
+        fontsize=20, fontweight="bold", y=0.995,
+    )
+
+    algorithms = comparison_df["algorithm"].tolist()
+    transforms = comparison_df["transform"].tolist()
+    labels = [f"{a}\n({t})" for a, t in zip(algorithms, transforms)]
+    colors = ["#3498DB", "#2ECC71", "#E74C3C", "#F39C12"]
+
+    # --- Panel 1: Silhouette Score ---
+    sil_values = comparison_df["silhouette"].tolist()
+    bars = axes[0, 0].bar(labels, sil_values, color=colors, edgecolor="black", linewidth=1.5)
+    axes[0, 0].set_ylabel("Silhouette Score", fontsize=12, fontweight="bold")
+    axes[0, 0].set_title("Silhouette Score (Higher = Better)", fontsize=14, fontweight="bold")
+    axes[0, 0].grid(True, alpha=0.3, axis="y")
+    for bar, val in zip(bars, sil_values):
+        axes[0, 0].text(
+            bar.get_x() + bar.get_width() / 2, val + 0.01,
+            f"{val:.3f}", ha="center", va="bottom", fontweight="bold", fontsize=11,
+        )
+    # Highlight best
+    best_idx = sil_values.index(max(sil_values))
+    bars[best_idx].set_edgecolor("#FFD700")
+    bars[best_idx].set_linewidth(4)
+
+    # --- Panel 2: Davies-Bouldin Score ---
+    db_values = comparison_df["davies_bouldin"].tolist()
+    bars2 = axes[0, 1].bar(labels, db_values, color=colors, edgecolor="black", linewidth=1.5)
+    axes[0, 1].set_ylabel("Davies-Bouldin Score", fontsize=12, fontweight="bold")
+    axes[0, 1].set_title("Davies-Bouldin Score (Lower = Better)", fontsize=14, fontweight="bold")
+    axes[0, 1].grid(True, alpha=0.3, axis="y")
+    for bar, val in zip(bars2, db_values):
+        axes[0, 1].text(
+            bar.get_x() + bar.get_width() / 2, val + 0.02,
+            f"{val:.3f}", ha="center", va="bottom", fontweight="bold", fontsize=11,
+        )
+    best_db_idx = db_values.index(min(db_values))
+    bars2[best_db_idx].set_edgecolor("#FFD700")
+    bars2[best_db_idx].set_linewidth(4)
+
+    # --- Panel 3: Hopkins Statistic ---
+    hopkins_labels = ["log-transform", "Yeo-Johnson"]
+    hopkins_values = [hopkins_log, hopkins_yj]
+    bars3 = axes[1, 0].bar(
+        hopkins_labels, hopkins_values,
+        color=["#3498DB", "#E74C3C"], edgecolor="black", linewidth=1.5,
+    )
+    axes[1, 0].axhline(y=0.75, color="red", linestyle="--", alpha=0.7, label="Threshold (0.75)")
+    axes[1, 0].axhline(y=0.5, color="gray", linestyle="--", alpha=0.5, label="Random (0.50)")
+    axes[1, 0].set_ylabel("Hopkins Statistic", fontsize=12, fontweight="bold")
+    axes[1, 0].set_title(
+        "Clustering Tendency\n(>0.75 = strong clustering)", fontsize=14, fontweight="bold",
+    )
+    axes[1, 0].set_ylim(0, 1)
+    axes[1, 0].legend(fontsize=10)
+    axes[1, 0].grid(True, alpha=0.3, axis="y")
+    for bar, val in zip(bars3, hopkins_values):
+        axes[1, 0].text(
+            bar.get_x() + bar.get_width() / 2, val + 0.02,
+            f"{val:.3f}", ha="center", va="bottom", fontweight="bold", fontsize=13,
+        )
+
+    # --- Panel 4: BIC / AIC for GMM ---
+    gmm_rows = comparison_df[comparison_df["algorithm"] == "GMM"]
+    gmm_labels = [f"GMM\n({row['transform']})" for _, row in gmm_rows.iterrows()]
+    bic_values = gmm_rows["bic"].tolist()
+    aic_values = gmm_rows["aic"].tolist()
+
+    x = np.arange(len(gmm_labels))
+    width = 0.35
+    axes[1, 1].bar(x - width / 2, bic_values, width, label="BIC", color="#3498DB", edgecolor="black")
+    axes[1, 1].bar(x + width / 2, aic_values, width, label="AIC", color="#2ECC71", edgecolor="black")
+    axes[1, 1].set_xticks(x)
+    axes[1, 1].set_xticklabels(gmm_labels, fontsize=11)
+    axes[1, 1].set_ylabel("Information Criterion", fontsize=12, fontweight="bold")
+    axes[1, 1].set_title(
+        "GMM Model Selection\n(BIC/AIC — Lower = Better)", fontsize=14, fontweight="bold",
+    )
+    axes[1, 1].legend(fontsize=11)
+    axes[1, 1].grid(True, alpha=0.3, axis="y")
+
+    fig.tight_layout()
+    save_figure(fig, output_dir, "7_algorithm_comparison.png")
+
+
 # ======================================================================
 # Main pipeline
 # ======================================================================
@@ -770,12 +865,38 @@ def main(argv=None):
     }
     rfm["KMeans_Label"] = rfm["Cluster"].map(kmeans_names)
 
-    print(f"  Silhouette Score:    {metrics['silhouette_score']:.3f}")
-    print(f"  Davies-Bouldin Score: {metrics['davies_bouldin_score']:.3f}")
+    print(f"  K-Means Silhouette Score:    {metrics['silhouette_score']:.3f}")
+    print(f"  K-Means Davies-Bouldin Score: {metrics['davies_bouldin_score']:.3f}")
+    print()
+
+    # ---- Step 3b: Algorithm comparison ----
+    print("[3b/6] Running algorithm comparison (K-Means vs GMM, log vs Yeo-Johnson) ...")
+    comparison_df = pipeline.compare_algorithms(rfm, k=args.k)
+
+    # Hopkins statistics
+    scaled_log, _ = pipeline._preprocess_features(rfm, method="log")
+    scaled_yj, _ = pipeline._preprocess_features(rfm, method="yeo-johnson")
+    hopkins_log = pipeline.hopkins_statistic(scaled_log)
+    hopkins_yj = pipeline.hopkins_statistic(scaled_yj)
+
+    print()
+    print("  Algorithm Comparison:")
+    print(f"  {'Algorithm':<12} {'Transform':<14} {'Silhouette':>11} {'Davies-Bouldin':>15}")
+    print("  " + "-" * 54)
+    best_sil = comparison_df["silhouette"].max()
+    for _, row in comparison_df.iterrows():
+        marker = " <-- BEST" if row["silhouette"] == best_sil else ""
+        print(
+            f"  {row['algorithm']:<12} {row['transform']:<14} "
+            f"{row['silhouette']:>11.3f} {row['davies_bouldin']:>15.3f}{marker}"
+        )
+    print()
+    print(f"  Hopkins Statistic (log):        {hopkins_log:.3f}")
+    print(f"  Hopkins Statistic (Yeo-Johnson): {hopkins_yj:.3f}")
     print()
 
     # ---- Step 4: Print summary table ----
-    print("[4/5] Summary")
+    print("[4/6] Summary")
     print("-" * 60)
     print()
 
@@ -809,18 +930,19 @@ def main(argv=None):
         )
     print()
 
-    # ---- Step 5: Generate all 6 visualizations ----
-    print("[5/5] Generating visualizations ...")
+    # ---- Step 5: Generate all 7 visualizations ----
+    print("[5/6] Generating visualizations ...")
     plot_segment_overview(rfm, args.output_dir)
     plot_executive_summary(rfm, args.output_dir)
     plot_3d_scatter(rfm, args.output_dir)
     plot_action_cards(rfm, args.output_dir)
     plot_elbow_method(elbow_df, args.k, args.output_dir)
     plot_kmeans_comparison(rfm, args.output_dir)
+    plot_algorithm_comparison(comparison_df, hopkins_log, hopkins_yj, args.output_dir)
 
     print()
     print("=" * 60)
-    print(f"Pipeline complete. 6 visualizations saved to {args.output_dir}")
+    print(f"Pipeline complete. 7 visualizations saved to {args.output_dir}")
     print("=" * 60)
 
 

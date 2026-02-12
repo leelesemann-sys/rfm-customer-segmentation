@@ -7,12 +7,13 @@
 
 ## Project Overview
 
-Customer segmentation analysis combining **rule-based RFM methodology** with **unsupervised K-Means clustering** to identify high-value customer segments.
+Customer segmentation analysis combining **rule-based RFM methodology** with **unsupervised clustering** (K-Means, GMM) to identify high-value customer segments. Includes a systematic comparison of algorithms and preprocessing methods.
 
 **Key Achievements:**
 - **Revenue Impact:** Identified £575k at-risk revenue from £6.7M base
 - **Segmentation:** 10 actionable customer groups with tailored marketing strategies
-- **ML Validation:** K-Means clustering (K=4, Silhouette 0.380) confirms RFM segment boundaries
+- **ML Validation:** Compared K-Means vs GMM across log-transform and Yeo-Johnson preprocessing
+- **Clustering Tendency:** Hopkins statistic > 0.9 confirms strong clustering structure
 
 ---
 
@@ -23,7 +24,8 @@ Customer segmentation analysis combining **rule-based RFM methodology** with **u
 | Total revenue analyzed | £6.7M |
 | Champions segment | £4.4M (65.4%) |
 | Revenue at risk | £575k (512 customers) |
-| K-Means Silhouette Score | 0.380 (with log-transform) |
+| Best Silhouette Score | 0.380 (K-Means + log-transform) |
+| Hopkins Statistic | 0.956 (strong clustering tendency) |
 
 ---
 
@@ -31,7 +33,7 @@ Customer segmentation analysis combining **rule-based RFM methodology** with **u
 
 - **Python 3.11:** pandas, numpy, scikit-learn
 - **Visualization:** matplotlib, seaborn
-- **ML:** K-Means, Elbow Method, Silhouette Analysis
+- **ML:** K-Means, Gaussian Mixture Model, Elbow Method, Silhouette Analysis, Hopkins Statistic
 
 ---
 
@@ -50,7 +52,7 @@ python run_pipeline.py
 python run_pipeline.py --input data/online_retail_clean.csv --output-dir visualizations/ --k 4
 ```
 
-The CLI entrypoint `run_pipeline.py` loads the cleaned dataset, computes RFM scores and segments, runs K-Means clustering, and regenerates all six visualizations.
+The CLI entrypoint `run_pipeline.py` runs the full pipeline: RFM scoring, K-Means and GMM clustering with algorithm comparison, and generates all seven visualizations.
 
 ---
 
@@ -72,10 +74,11 @@ rfm-customer-segmentation/
 │   ├── 3_rfm_3d_scatter.png
 │   ├── 4_rfm_action_cards.png
 │   ├── 5_kmeans_elbow_method.png
-│   └── 6_kmeans_final_comparison.png
+│   ├── 6_kmeans_final_comparison.png
+│   └── 7_algorithm_comparison.png
 ├── tests/
 │   ├── conftest.py                    # Shared test fixtures
-│   └── test_pipeline.py              # 36 unit tests for the pipeline
+│   └── test_pipeline.py              # 61 unit tests for the pipeline
 ├── run_pipeline.py                    # CLI entrypoint for full pipeline
 ├── .github/workflows/test.yml         # CI: runs tests on Python 3.10-3.12
 ├── requirements.txt
@@ -92,11 +95,12 @@ rfm-customer-segmentation/
 2. RFM calculation (Recency, Frequency, Monetary)
 3. Quintile scoring (1-5 scale)
 4. Rule-based segmentation (10 business segments)
-5. Log-transform (Frequency, Monetary) + StandardScaler before clustering
-6. K-Means clustering (K=4, Silhouette Score: 0.380)
-7. Cross-validation (RFM vs K-Means)
+5. Hopkins statistic to verify clustering tendency (0.956)
+6. Preprocessing comparison: log-transform vs Yeo-Johnson power transform
+7. Algorithm comparison: K-Means vs Gaussian Mixture Model (K=4)
+8. Best model: K-Means + log-transform (Silhouette: 0.380)
 
-**Reusable Pipeline:** The `src/rfm_pipeline.py` module encapsulates the full pipeline as an `RFMPipeline` class with methods for cleaning, RFM computation, scoring, segmentation, and clustering. Includes a `download_dataset()` helper to fetch the raw UCI data.
+**Reusable Pipeline:** The `src/rfm_pipeline.py` module encapsulates the full pipeline as an `RFMPipeline` class with methods for cleaning, RFM computation, scoring, segmentation, clustering (K-Means + GMM), and algorithm comparison. Includes a `download_dataset()` helper to fetch the raw UCI data.
 
 ---
 
@@ -129,6 +133,19 @@ rfm-customer-segmentation/
 | Regular | 1,341 | Mainstream customers |
 | VIP Regulars | 1,434 | 4 purchases avg., £1.4k spend |
 | Super VIPs | 594 | 15 purchases avg., £6.5k spend |
+
+### Algorithm Comparison (v2.0)
+
+![Algorithm Comparison](visualizations/7_algorithm_comparison.png)
+
+| Algorithm | Transform | Silhouette | Davies-Bouldin |
+|-----------|-----------|------------|----------------|
+| **K-Means** | **log** | **0.380** | **0.857** |
+| K-Means | Yeo-Johnson | 0.338 | 1.019 |
+| GMM | log | 0.112 | 1.851 |
+| GMM | Yeo-Johnson | 0.197 | 1.768 |
+
+**Finding:** K-Means + log-transform outperforms all other combinations on this dataset. Contrary to some literature (Shobayo et al., 2023), GMM does not improve cluster quality here, likely because the RFM feature space after log-transform already favors spherical clusters.
 
 ### Executive Dashboard & Model Selection
 
@@ -163,7 +180,7 @@ rfm-customer-segmentation/
 
 - [ ] Predictive CLV model (Random Forest)
 - [ ] Churn prediction classifier
-- [ ] Azure ML automated pipeline
+- [ ] Real-time segmentation API (FastAPI)
 - [ ] Power BI interactive dashboard
 
 ---

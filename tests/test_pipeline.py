@@ -282,3 +282,192 @@ class TestFindOptimalK:
         result = pipeline.find_optimal_k(rfm_table, k_range=range(2, 5))
         inertias = result["inertia"].tolist()
         assert inertias[0] > inertias[-1]
+
+
+# ======================================================================
+# _preprocess_features
+# ======================================================================
+
+
+class TestPreprocessFeatures:
+    """Tests for RFMPipeline._preprocess_features."""
+
+    def test_log_returns_correct_shape(self, rfm_table):
+        scaled, _ = RFMPipeline._preprocess_features(rfm_table, method="log")
+        assert scaled.shape == (len(rfm_table), 3)
+
+    def test_yeo_johnson_returns_correct_shape(self, rfm_table):
+        scaled, _ = RFMPipeline._preprocess_features(rfm_table, method="yeo-johnson")
+        assert scaled.shape == (len(rfm_table), 3)
+
+    def test_log_produces_standardized_output(self, rfm_table):
+        scaled, _ = RFMPipeline._preprocess_features(rfm_table, method="log")
+        # StandardScaler output should have near-zero mean
+        assert abs(scaled.mean()) < 0.1
+
+    def test_yeo_johnson_produces_standardized_output(self, rfm_table):
+        scaled, _ = RFMPipeline._preprocess_features(rfm_table, method="yeo-johnson")
+        # PowerTransformer(standardize=True) should have near-zero mean
+        assert abs(scaled.mean()) < 0.1
+
+    def test_invalid_method_raises(self, rfm_table):
+        with pytest.raises(ValueError, match="Unknown method"):
+            RFMPipeline._preprocess_features(rfm_table, method="invalid")
+
+    def test_different_methods_produce_different_results(self, rfm_table):
+        log_scaled, _ = RFMPipeline._preprocess_features(rfm_table, method="log")
+        yj_scaled, _ = RFMPipeline._preprocess_features(rfm_table, method="yeo-johnson")
+        # Results should differ (different transforms)
+        assert not np.allclose(log_scaled, yj_scaled)
+
+
+# ======================================================================
+# hopkins_statistic
+# ======================================================================
+
+
+class TestHopkinsStatistic:
+    """Tests for RFMPipeline.hopkins_statistic."""
+
+    def test_returns_float(self, rfm_table):
+        scaled, _ = RFMPipeline._preprocess_features(rfm_table, method="log")
+        h = RFMPipeline.hopkins_statistic(scaled)
+        assert isinstance(h, float)
+
+    def test_in_valid_range(self, rfm_table):
+        scaled, _ = RFMPipeline._preprocess_features(rfm_table, method="log")
+        h = RFMPipeline.hopkins_statistic(scaled)
+        assert 0.0 <= h <= 1.0
+
+    def test_uniform_data_below_clustered(self):
+        """Uniform data should have lower Hopkins than clearly clustered data."""
+        rng = np.random.default_rng(42)
+        uniform_data = rng.uniform(0, 1, size=(500, 3))
+        h_uniform = RFMPipeline.hopkins_statistic(uniform_data, random_state=42)
+
+        cluster1 = rng.normal(0, 0.1, size=(200, 3))
+        cluster2 = rng.normal(5, 0.1, size=(200, 3))
+        clustered_data = np.vstack([cluster1, cluster2])
+        h_clustered = RFMPipeline.hopkins_statistic(clustered_data, random_state=42)
+
+        assert h_uniform < h_clustered
+
+    def test_clustered_data_above_threshold(self):
+        """Clearly clustered data should have Hopkins well above 0.5."""
+        rng = np.random.default_rng(42)
+        cluster1 = rng.normal(0, 0.1, size=(100, 3))
+        cluster2 = rng.normal(5, 0.1, size=(100, 3))
+        cluster3 = rng.normal(10, 0.1, size=(100, 3))
+        clustered_data = np.vstack([cluster1, cluster2, cluster3])
+        h = RFMPipeline.hopkins_statistic(clustered_data, random_state=42)
+        assert h > 0.75
+
+    def test_reproducibility(self, rfm_table):
+        scaled, _ = RFMPipeline._preprocess_features(rfm_table, method="log")
+        h1 = RFMPipeline.hopkins_statistic(scaled, random_state=42)
+        h2 = RFMPipeline.hopkins_statistic(scaled, random_state=42)
+        assert h1 == h2
+
+
+# ======================================================================
+# cluster_gmm
+# ======================================================================
+
+
+class TestClusterGMM:
+    """Tests for RFMPipeline.cluster_gmm."""
+
+    def test_cluster_column_present(self, rfm_table):
+        pipeline = RFMPipeline()
+        result, _, _, _ = pipeline.cluster_gmm(rfm_table, k=3)
+        assert "GMM_Cluster" in result.columns
+
+    def test_correct_number_of_clusters(self, rfm_table):
+        pipeline = RFMPipeline()
+        result, _, _, _ = pipeline.cluster_gmm(rfm_table, k=3)
+        assert result["GMM_Cluster"].nunique() == 3
+
+    def test_all_customers_clustered(self, rfm_table):
+        pipeline = RFMPipeline()
+        result, _, _, _ = pipeline.cluster_gmm(rfm_table, k=4)
+        assert result["GMM_Cluster"].isna().sum() == 0
+
+    def test_metrics_include_bic_aic(self, rfm_table):
+        pipeline = RFMPipeline()
+        _, _, _, metrics = pipeline.cluster_gmm(rfm_table, k=4)
+        assert "silhouette_score" in metrics
+        assert "davies_bouldin_score" in metrics
+        assert "bic" in metrics
+        assert "aic" in metrics
+
+    def test_silhouette_in_valid_range(self, rfm_table):
+        pipeline = RFMPipeline()
+        _, _, _, metrics = pipeline.cluster_gmm(rfm_table, k=3)
+        assert -1 <= metrics["silhouette_score"] <= 1
+
+    def test_yeo_johnson_transform(self, rfm_table):
+        """GMM should work with Yeo-Johnson preprocessing."""
+        pipeline = RFMPipeline()
+        result, _, _, metrics = pipeline.cluster_gmm(rfm_table, k=3, transform="yeo-johnson")
+        assert result["GMM_Cluster"].nunique() == 3
+        assert -1 <= metrics["silhouette_score"] <= 1
+
+    def test_reproducibility(self, rfm_table):
+        pipeline = RFMPipeline()
+        r1, _, _, m1 = pipeline.cluster_gmm(rfm_table, k=4, random_state=42)
+        r2, _, _, m2 = pipeline.cluster_gmm(rfm_table, k=4, random_state=42)
+        pd.testing.assert_series_equal(r1["GMM_Cluster"], r2["GMM_Cluster"])
+        assert m1["silhouette_score"] == m2["silhouette_score"]
+
+
+# ======================================================================
+# compare_algorithms
+# ======================================================================
+
+
+class TestCompareAlgorithms:
+    """Tests for RFMPipeline.compare_algorithms."""
+
+    def test_returns_dataframe(self, rfm_table):
+        pipeline = RFMPipeline()
+        result = pipeline.compare_algorithms(rfm_table, k=3)
+        assert isinstance(result, pd.DataFrame)
+
+    def test_four_rows_returned(self, rfm_table):
+        """Should have 4 rows: 2 algorithms x 2 transforms."""
+        pipeline = RFMPipeline()
+        result = pipeline.compare_algorithms(rfm_table, k=3)
+        assert len(result) == 4
+
+    def test_correct_columns(self, rfm_table):
+        pipeline = RFMPipeline()
+        result = pipeline.compare_algorithms(rfm_table, k=3)
+        expected = {"algorithm", "transform", "silhouette", "davies_bouldin", "hopkins", "bic", "aic"}
+        assert set(result.columns) == expected
+
+    def test_all_silhouettes_valid(self, rfm_table):
+        pipeline = RFMPipeline()
+        result = pipeline.compare_algorithms(rfm_table, k=3)
+        assert (result["silhouette"] >= -1).all()
+        assert (result["silhouette"] <= 1).all()
+
+    def test_hopkins_consistent_per_transform(self, rfm_table):
+        """Hopkins should be the same for both algorithms using same transform."""
+        pipeline = RFMPipeline()
+        result = pipeline.compare_algorithms(rfm_table, k=3)
+        log_rows = result[result["transform"] == "log"]
+        assert log_rows["hopkins"].nunique() == 1
+
+    def test_gmm_has_bic_aic(self, rfm_table):
+        pipeline = RFMPipeline()
+        result = pipeline.compare_algorithms(rfm_table, k=3)
+        gmm_rows = result[result["algorithm"] == "GMM"]
+        assert gmm_rows["bic"].notna().all()
+        assert gmm_rows["aic"].notna().all()
+
+    def test_kmeans_has_no_bic_aic(self, rfm_table):
+        pipeline = RFMPipeline()
+        result = pipeline.compare_algorithms(rfm_table, k=3)
+        km_rows = result[result["algorithm"] == "K-Means"]
+        assert km_rows["bic"].isna().all()
+        assert km_rows["aic"].isna().all()
