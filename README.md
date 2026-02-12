@@ -36,6 +36,25 @@ Customer segmentation analysis combining **rule-based RFM methodology** with **u
 
 ---
 
+## Quick Start
+
+```bash
+# Clone and install
+git clone https://github.com/leelesemann-sys/rfm-customer-segmentation.git
+cd rfm-customer-segmentation
+pip install -r requirements.txt
+
+# Run the full pipeline (requires cleaned data in data/)
+python run_pipeline.py
+
+# Custom options
+python run_pipeline.py --input data/online_retail_clean.csv --output-dir visualizations/ --k 4
+```
+
+The CLI entrypoint `run_pipeline.py` loads the cleaned dataset, computes RFM scores and segments, runs K-Means clustering, and regenerates all six visualizations.
+
+---
+
 ## Project Structure
 ```
 rfm-customer-segmentation/
@@ -58,6 +77,7 @@ rfm-customer-segmentation/
 ├── tests/
 │   ├── conftest.py                    # Shared test fixtures
 │   └── test_pipeline.py              # 36 unit tests for the pipeline
+├── run_pipeline.py                    # CLI entrypoint for full pipeline
 ├── .github/workflows/test.yml         # CI: runs tests on Python 3.10-3.12
 ├── requirements.txt
 ├── LICENSE
