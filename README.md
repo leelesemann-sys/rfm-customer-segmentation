@@ -1,19 +1,12 @@
 # RFM Customer Segmentation - ML-Driven Approach
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
-[![Tests](https://github.com/leelesemann-sys/rfm-customer-segmentation/actions/workflows/test.yml/badge.svg)](https://github.com/leelesemann-sys/rfm-customer-segmentation/actions/workflows/test.yml)
+[![Tests](https://img.shields.io/badge/tests-61%20passed-brightgreen.svg)](https://github.com/leelesemann-sys/rfm-customer-segmentation/actions/workflows/test.yml)
 [![Coverage](https://raw.githubusercontent.com/leelesemann-sys/rfm-customer-segmentation/main/.github/badges/coverage.svg)](https://github.com/leelesemann-sys/rfm-customer-segmentation/actions/workflows/test.yml)
+[![CI](https://github.com/leelesemann-sys/rfm-customer-segmentation/actions/workflows/test.yml/badge.svg)](https://github.com/leelesemann-sys/rfm-customer-segmentation/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## Project Overview
-
-Customer segmentation analysis combining **rule-based RFM methodology** with **unsupervised clustering** (K-Means, GMM) to identify high-value customer segments. Includes a systematic comparison of algorithms and preprocessing methods.
-
-**Key Achievements:**
-- **Revenue Impact:** Identified £575k at-risk revenue from £6.7M base
-- **Segmentation:** 10 actionable customer groups with tailored marketing strategies
-- **ML Validation:** Compared K-Means vs GMM across log-transform and Yeo-Johnson preprocessing
-- **Clustering Tendency:** Hopkins statistic > 0.9 confirms strong clustering structure
+> **End-to-end customer analytics pipeline** that segments 4,290 customers from £6.7M in retail transactions using rule-based RFM scoring and unsupervised clustering. Includes a systematic comparison of K-Means vs Gaussian Mixture Model across multiple preprocessing strategies.
 
 ---
 
@@ -21,167 +14,162 @@ Customer segmentation analysis combining **rule-based RFM methodology** with **u
 
 | Metric | Value |
 |--------|-------|
-| Total revenue analyzed | £6.7M |
-| Champions segment | £4.4M (65.4%) |
-| Revenue at risk | £575k (512 customers) |
-| Best Silhouette Score | 0.380 (K-Means + log-transform) |
-| Hopkins Statistic | 0.956 (strong clustering tendency) |
+| Total revenue analyzed | **£6.7M** across 394k transactions |
+| Champions identified | **1,127 customers** generating £4.4M (65%) |
+| Revenue at risk | **£575k** from 512 at-risk customers |
+| Actionable segments | **10** with tailored marketing strategies |
 
 ---
 
-## Tech Stack
+## What Makes This Project Different
 
-- **Python 3.11:** pandas, numpy, scikit-learn
-- **Visualization:** matplotlib, seaborn
-- **ML:** K-Means, Gaussian Mixture Model, Elbow Method, Silhouette Analysis, Hopkins Statistic
+Most RFM analyses on this dataset stop at K-Means with default settings. This project goes further:
+
+1. **Algorithm comparison** — K-Means vs GMM, systematically benchmarked
+2. **Preprocessing comparison** — log-transform vs Yeo-Johnson power transform
+3. **Statistical validation** — Hopkins statistic (0.956) proves data is clusterable *before* running algorithms
+4. **Production-ready code** — Reusable `RFMPipeline` class, not just a notebook
+5. **Tested and automated** — 61 unit tests, GitHub Actions CI across Python 3.10-3.12
+6. **Iterative development** — [v1.0](https://github.com/leelesemann-sys/rfm-customer-segmentation/releases/tag/v1.0) baseline, then [v2.0](https://github.com/leelesemann-sys/rfm-customer-segmentation/releases/tag/v2.0) with multi-algorithm comparison via [documented PR](https://github.com/leelesemann-sys/rfm-customer-segmentation/pull/1)
 
 ---
 
 ## Quick Start
 
 ```bash
-# Clone and install
 git clone https://github.com/leelesemann-sys/rfm-customer-segmentation.git
 cd rfm-customer-segmentation
 pip install -r requirements.txt
 
-# Run the full pipeline (requires cleaned data in data/)
-python run_pipeline.py
-
-# Custom options
-python run_pipeline.py --input data/online_retail_clean.csv --output-dir visualizations/ --k 4
+python run_pipeline.py                    # Run full pipeline with defaults
+python run_pipeline.py --k 5             # Try different cluster counts
 ```
-
-The CLI entrypoint `run_pipeline.py` runs the full pipeline: RFM scoring, K-Means and GMM clustering with algorithm comparison, and generates all seven visualizations.
-
----
-
-## Project Structure
-```
-rfm-customer-segmentation/
-├── src/
-│   ├── __init__.py
-│   └── rfm_pipeline.py               # Reusable RFM pipeline class + dataset downloader
-├── notebooks/
-│   ├── 01_data_exploration.ipynb      # EDA & data cleaning
-│   └── 02_rfm_analysis.ipynb          # RFM scoring & K-Means clustering
-├── data/
-│   ├── online_retail_clean.csv.zip    # Cleaned dataset (394k transactions)
-│   └── README.md
-├── visualizations/
-│   ├── 1_rfm_segment_overview.png
-│   ├── 2_rfm_executive_summary.png
-│   ├── 3_rfm_3d_scatter.png
-│   ├── 4_rfm_action_cards.png
-│   ├── 5_kmeans_elbow_method.png
-│   ├── 6_kmeans_final_comparison.png
-│   └── 7_algorithm_comparison.png
-├── tests/
-│   ├── conftest.py                    # Shared test fixtures
-│   └── test_pipeline.py              # 61 unit tests for the pipeline
-├── run_pipeline.py                    # CLI entrypoint for full pipeline
-├── .github/workflows/test.yml         # CI: runs tests on Python 3.10-3.12
-├── requirements.txt
-├── LICENSE
-├── .gitignore
-└── README.md
-```
-
----
-
-## Methodology
-
-1. Data cleaning (541k → 394k transactions, 72.7% retained)
-2. RFM calculation (Recency, Frequency, Monetary)
-3. Quintile scoring (1-5 scale)
-4. Rule-based segmentation (10 business segments)
-5. Hopkins statistic to verify clustering tendency (0.956)
-6. Preprocessing comparison: log-transform vs Yeo-Johnson power transform
-7. Algorithm comparison: K-Means vs Gaussian Mixture Model (K=4)
-8. Best model: K-Means + log-transform (Silhouette: 0.380)
-
-**Reusable Pipeline:** The `src/rfm_pipeline.py` module encapsulates the full pipeline as an `RFMPipeline` class with methods for cleaning, RFM computation, scoring, segmentation, clustering (K-Means + GMM), and algorithm comparison. Includes a `download_dataset()` helper to fetch the raw UCI data.
 
 ---
 
 ## Results
 
-### RFM Segments
+### RFM Segments (Rule-Based)
 
 ![RFM Segment Overview](visualizations/1_rfm_segment_overview.png)
 
-**High Priority:**
-- **Champions** (1,127): £4.4M revenue — VIP programs, loyalty rewards
-- **At Risk** (453): £508k at risk — Win-back campaigns, 20% discount
-- **Can't Lose Them** (59): £67k — Personal outreach, account managers
+| Priority | Segment | Customers | Revenue | Recommended Action |
+|----------|---------|-----------|---------|-------------------|
+| High | Champions | 1,127 | £4.4M | VIP programs, loyalty rewards |
+| High | At Risk | 453 | £508k | Win-back campaigns, 20% discount |
+| High | Can't Lose Them | 59 | £67k | Personal outreach, account managers |
+| Medium | Loyal Customers | 802 | £994k | Upselling, cross-sell |
+| Medium | New Customers | 136 | £44k | Onboarding, next purchase incentive |
+| Low | Lost | 798 | £294k | Low-cost reactivation only |
+| Low | Hibernating | 399 | £179k | Mass email campaigns |
 
-**Medium Priority:**
-- **Loyal Customers** (802): £994k — Upselling, cross-sell
-- **New Customers** (136): £44k — Onboarding, next purchase incentive
-
-**Low Priority:**
-- **Lost** (798): £294k — Low-cost reactivation only
-- **Hibernating** (399): £179k — Mass email campaigns
-
-### K-Means Clusters
-
-![K-Means Comparison](visualizations/6_kmeans_final_comparison.png)
-
-| Cluster | Size | Key Metric |
-|---------|------|------------|
-| Inactive | 921 | 260 days avg. recency |
-| Regular | 1,341 | Mainstream customers |
-| VIP Regulars | 1,434 | 4 purchases avg., £1.4k spend |
-| Super VIPs | 594 | 15 purchases avg., £6.5k spend |
-
-### Algorithm Comparison (v2.0)
+### Algorithm Comparison
 
 ![Algorithm Comparison](visualizations/7_algorithm_comparison.png)
 
-| Algorithm | Transform | Silhouette | Davies-Bouldin |
-|-----------|-----------|------------|----------------|
-| **K-Means** | **log** | **0.380** | **0.857** |
-| K-Means | Yeo-Johnson | 0.338 | 1.019 |
-| GMM | log | 0.112 | 1.851 |
-| GMM | Yeo-Johnson | 0.197 | 1.768 |
+| Algorithm | Transform | Silhouette | Davies-Bouldin | Winner? |
+|-----------|-----------|------------|----------------|---------|
+| **K-Means** | **log** | **0.380** | **0.857** | **Best** |
+| K-Means | Yeo-Johnson | 0.338 | 1.019 | |
+| GMM | Yeo-Johnson | 0.197 | 1.768 | |
+| GMM | log | 0.112 | 1.851 | |
 
-**Finding:** K-Means + log-transform outperforms all other combinations on this dataset. Contrary to some literature (Shobayo et al., 2023), GMM does not improve cluster quality here, likely because the RFM feature space after log-transform already favors spherical clusters.
+**Key insight:** Contrary to Shobayo et al. (2023) who found GMM superior (Silhouette 0.80 vs 0.62), K-Means outperforms GMM on this dataset. The log-transform makes RFM features approximately spherical, which is exactly what K-Means assumes. GMM's flexibility (elliptical clusters) adds complexity without improving separation.
 
-### Executive Dashboard & Model Selection
+### K-Means Clusters (K=4)
+
+![K-Means Comparison](visualizations/6_kmeans_final_comparison.png)
+
+| Cluster | Size | Avg. Recency | Avg. Purchases | Avg. Spend |
+|---------|------|-------------|----------------|------------|
+| Inactive | 921 | 260 days | 1 | £356 |
+| Regular | 1,341 | 59 days | 1 | £359 |
+| VIP Regulars | 1,434 | 47 days | 4 | £1,442 |
+| Super VIPs | 594 | 19 days | 15 | £6,457 |
+
+### Dashboards
 
 ![Executive Summary](visualizations/2_rfm_executive_summary.png)
 ![K-Means Elbow](visualizations/5_kmeans_elbow_method.png)
 
 ---
 
-## Dataset
+## Methodology
 
-**Source:** UCI Machine Learning Repository — Online Retail
-**Period:** Dec 2010 – Dec 2011 (12.4 months)
-**Size:** 541,909 → 393,915 transactions | 4,290 unique customers | UK-based (89.1%)
+```
+Raw Data (541k rows)
+    │
+    ├── 1. Data Cleaning ──────────── 394k transactions retained (72.7%)
+    ├── 2. RFM Aggregation ────────── 4,290 customer profiles
+    ├── 3. Quintile Scoring ───────── R/F/M scores (1-5 scale)
+    ├── 4. Rule-Based Segments ────── 10 business segments
+    ├── 5. Hopkins Statistic ──────── 0.956 (clustering validated)
+    ├── 6. Preprocessing ──────────── log-transform vs Yeo-Johnson
+    ├── 7. Algorithm Comparison ───── K-Means vs GMM (4 combinations)
+    └── 8. Best Model ─────────────── K-Means + log (Silhouette: 0.380)
+```
 
 ---
 
-## Business Recommendations
+## Tech Stack
 
-**Immediate Actions:**
-1. Win-back campaign for 453 At-Risk customers (£508k revenue)
-2. VIP loyalty program for 1,127 Champions (£4.4M revenue)
-3. Personal outreach for 59 Can't-Lose-Them customers
+| Category | Tools |
+|----------|-------|
+| Language | Python 3.11 |
+| Data | pandas, numpy |
+| ML | scikit-learn (K-Means, GMM, Hopkins, Yeo-Johnson) |
+| Visualization | matplotlib, seaborn |
+| Testing | pytest (61 tests), pytest-cov |
+| CI/CD | GitHub Actions (Python 3.10, 3.11, 3.12) |
 
-**Strategic Initiatives:**
-4. Improve New → Loyal conversion (currently 48%)
-5. Upselling campaigns for Loyal customers
-6. Low-cost reactivation for Hibernating segment
+---
+
+## Project Structure
+
+```
+rfm-customer-segmentation/
+├── src/
+│   ├── __init__.py
+│   └── rfm_pipeline.py               # Reusable pipeline class (K-Means, GMM, Hopkins)
+├── notebooks/
+│   ├── 01_data_exploration.ipynb      # EDA & data cleaning
+│   └── 02_rfm_analysis.ipynb         # RFM scoring & clustering
+├── tests/
+│   ├── conftest.py                    # Shared test fixtures (50 synthetic customers)
+│   └── test_pipeline.py              # 61 unit tests across 10 test classes
+├── visualizations/                    # 7 publication-ready PNGs
+├── data/
+│   └── online_retail_clean.csv.zip   # Cleaned dataset (394k transactions)
+├── run_pipeline.py                    # CLI entrypoint (full pipeline + all visualizations)
+├── .github/workflows/test.yml         # CI: tests + coverage badge
+└── requirements.txt
+```
+
+---
+
+## Dataset
+
+**Source:** [UCI Machine Learning Repository — Online Retail](https://archive.ics.uci.edu/dataset/352/online+retail)
+**Period:** Dec 2010 -- Dec 2011 (12.4 months)
+**Size:** 541,909 transactions | 4,290 unique customers | UK-based (89.1%)
+
+---
+
+## Version History
+
+| Version | What changed | PR |
+|---------|-------------|-----|
+| [v1.0](https://github.com/leelesemann-sys/rfm-customer-segmentation/releases/tag/v1.0) | Baseline: RFM + K-Means, 36 tests, CI | -- |
+| [v2.0](https://github.com/leelesemann-sys/rfm-customer-segmentation/releases/tag/v2.0) | +GMM, +Yeo-Johnson, +Hopkins, 61 tests | [#1](https://github.com/leelesemann-sys/rfm-customer-segmentation/pull/1) |
 
 ---
 
 ## Future Enhancements
 
-- [ ] Predictive CLV model (Random Forest)
+- [ ] Predictive CLV model (Random Forest / XGBoost)
 - [ ] Churn prediction classifier
 - [ ] Real-time segmentation API (FastAPI)
-- [ ] Power BI interactive dashboard
+- [ ] Interactive dashboard (Streamlit or Power BI)
 
 ---
 
@@ -197,4 +185,4 @@ Azure AI Engineer | Customer Analytics Consultant
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details
+MIT License -- see [LICENSE](LICENSE) for details
