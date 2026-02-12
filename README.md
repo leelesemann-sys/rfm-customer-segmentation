@@ -1,6 +1,7 @@
 # RFM Customer Segmentation - ML-Driven Approach
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
+[![Tests](https://github.com/leelesemann-sys/rfm-customer-segmentation/actions/workflows/test.yml/badge.svg)](https://github.com/leelesemann-sys/rfm-customer-segmentation/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ## Project Overview
@@ -53,6 +54,10 @@ rfm-customer-segmentation/
 │   ├── 4_rfm_action_cards.png
 │   ├── 5_kmeans_elbow_method.png
 │   └── 6_kmeans_final_comparison.png
+├── tests/
+│   ├── conftest.py                    # Shared test fixtures
+│   └── test_pipeline.py              # 36 unit tests for the pipeline
+├── .github/workflows/test.yml         # CI: runs tests on Python 3.10-3.12
 ├── requirements.txt
 ├── LICENSE
 ├── .gitignore
