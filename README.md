@@ -10,9 +10,9 @@
 Customer segmentation analysis combining **rule-based RFM methodology** with **unsupervised K-Means clustering** to identify high-value customer segments.
 
 **Key Achievements:**
-- **Revenue Impact:** Identified £548k at-risk revenue + 8 Super-VIPs (£580k) from £6.7M base
+- **Revenue Impact:** Identified £575k at-risk revenue from £6.7M base
 - **Segmentation:** 10 actionable customer groups with tailored marketing strategies
-- **Validation:** 95% overlap between rule-based RFM and unsupervised K-Means methods
+- **ML Validation:** K-Means clustering (K=4, Silhouette 0.380) confirms RFM segment boundaries
 
 ---
 
@@ -21,10 +21,9 @@ Customer segmentation analysis combining **rule-based RFM methodology** with **u
 | Metric | Value |
 |--------|-------|
 | Total revenue analyzed | £6.7M |
-| Champions segment | £4.3M (63.8%) |
-| Revenue at risk | £548k (346 customers) |
-| Super-VIPs discovered | 8 (avg. £72k spend) |
-| RFM vs K-Means validation | 95% overlap |
+| Champions segment | £4.4M (65.4%) |
+| Revenue at risk | £575k (512 customers) |
+| K-Means Silhouette Score | 0.380 (with log-transform) |
 
 ---
 
@@ -94,7 +93,7 @@ rfm-customer-segmentation/
 3. Quintile scoring (1-5 scale)
 4. Rule-based segmentation (10 business segments)
 5. Log-transform (Frequency, Monetary) + StandardScaler before clustering
-6. K-Means clustering (K=4, Silhouette Score: 0.601)
+6. K-Means clustering (K=4, Silhouette Score: 0.380)
 7. Cross-validation (RFM vs K-Means)
 
 **Reusable Pipeline:** The `src/rfm_pipeline.py` module encapsulates the full pipeline as an `RFMPipeline` class with methods for cleaning, RFM computation, scoring, segmentation, and clustering. Includes a `download_dataset()` helper to fetch the raw UCI data.
@@ -108,17 +107,17 @@ rfm-customer-segmentation/
 ![RFM Segment Overview](visualizations/1_rfm_segment_overview.png)
 
 **High Priority:**
-- **Champions** (958): £4.3M revenue — VIP programs, loyalty rewards
-- **At Risk** (346): £476k at risk — Win-back campaigns, 20% discount
-- **Can't Lose Them** (23): £48k — Personal outreach, account managers
+- **Champions** (1,127): £4.4M revenue — VIP programs, loyalty rewards
+- **At Risk** (453): £508k at risk — Win-back campaigns, 20% discount
+- **Can't Lose Them** (59): £67k — Personal outreach, account managers
 
 **Medium Priority:**
-- **Loyal Customers** (742): £1.0M — Upselling, cross-sell
-- **New Customers** (316): £132k — Onboarding, next purchase incentive
+- **Loyal Customers** (802): £994k — Upselling, cross-sell
+- **New Customers** (136): £44k — Onboarding, next purchase incentive
 
 **Low Priority:**
-- **Lost** (1,079): £304k — Low-cost reactivation only
-- **Hibernating** (500): £279k — Mass email campaigns
+- **Lost** (798): £294k — Low-cost reactivation only
+- **Hibernating** (399): £179k — Mass email campaigns
 
 ### K-Means Clusters
 
@@ -126,10 +125,10 @@ rfm-customer-segmentation/
 
 | Cluster | Size | Key Metric |
 |---------|------|------------|
-| Inactive | 1,061 | 248 days avg. recency |
-| Regular | 2,999 | Mainstream customers |
-| VIP Regulars | 222 | 21 purchases avg., £9k spend |
-| Super VIPs | 8 | 108 purchases avg., £72k spend |
+| Inactive | 921 | 260 days avg. recency |
+| Regular | 1,341 | Mainstream customers |
+| VIP Regulars | 1,434 | 4 purchases avg., £1.4k spend |
+| Super VIPs | 594 | 15 purchases avg., £6.5k spend |
 
 ### Executive Dashboard & Model Selection
 
@@ -149,9 +148,9 @@ rfm-customer-segmentation/
 ## Business Recommendations
 
 **Immediate Actions:**
-1. Dedicated account management for 8 Super-VIPs
-2. Win-back campaign for 346 At-Risk customers
-3. VIP loyalty program for 958 Champions
+1. Win-back campaign for 453 At-Risk customers (£508k revenue)
+2. VIP loyalty program for 1,127 Champions (£4.4M revenue)
+3. Personal outreach for 59 Can't-Lose-Them customers
 
 **Strategic Initiatives:**
 4. Improve New → Loyal conversion (currently 48%)
