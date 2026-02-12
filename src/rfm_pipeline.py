@@ -1,8 +1,9 @@
 """RFM Analysis Pipeline.
 
 A reusable module for performing RFM (Recency, Frequency, Monetary) customer
-segmentation on transactional retail data. Supports both rule-based segment
-assignment and K-Means clustering with proper log-transform preprocessing.
+segmentation on transactional retail data. Supports rule-based segment
+assignment and multiple clustering algorithms (K-Means, GMM) with
+configurable preprocessing (log-transform or Yeo-Johnson power transform).
 
 Typical usage:
     pipeline = RFMPipeline()
@@ -10,6 +11,9 @@ Typical usage:
     rfm = pipeline.compute_rfm(cleaned)
     rfm = pipeline.score_rfm(rfm)
     rfm = pipeline.segment_customers(rfm)
+
+    # Multi-algorithm comparison
+    comparison = pipeline.compare_algorithms(rfm, k=4)
 """
 
 from __future__ import annotations
@@ -25,7 +29,8 @@ import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.metrics import davies_bouldin_score, silhouette_score
-from sklearn.preprocessing import StandardScaler
+from sklearn.mixture import GaussianMixture
+from sklearn.preprocessing import PowerTransformer, StandardScaler
 
 
 class RFMPipeline:
@@ -396,6 +401,253 @@ class RFMPipeline:
                     "davies_bouldin": float(davies_bouldin_score(scaled, labels)),
                 }
             )
+
+        return pd.DataFrame(records)
+
+    # ------------------------------------------------------------------
+    # Preprocessing helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _preprocess_features(
+        rfm: pd.DataFrame,
+        method: str = "log",
+    ) -> Tuple[np.ndarray, object]:
+        """Transform and scale RFM features for clustering.
+
+        Parameters
+        ----------
+        rfm : pd.DataFrame
+            Must contain ``Recency``, ``Frequency``, ``Monetary``.
+        method : str
+            ``"log"`` for log1p + StandardScaler (v1 default),
+            ``"yeo-johnson"`` for PowerTransformer (Yeo-Johnson).
+
+        Returns
+        -------
+        scaled : np.ndarray
+            Transformed and scaled feature matrix (n_customers, 3).
+        transformer : object
+            The fitted transformer (StandardScaler or PowerTransformer).
+        """
+        features = rfm[["Recency", "Frequency", "Monetary"]].copy()
+
+        if method == "log":
+            features["Frequency"] = np.log1p(features["Frequency"])
+            features["Monetary"] = np.log1p(features["Monetary"])
+            transformer = StandardScaler()
+            scaled = transformer.fit_transform(features)
+        elif method == "yeo-johnson":
+            transformer = PowerTransformer(method="yeo-johnson", standardize=True)
+            scaled = transformer.fit_transform(features)
+        else:
+            raise ValueError(f"Unknown method: {method!r}. Use 'log' or 'yeo-johnson'.")
+
+        return scaled, transformer
+
+    # ------------------------------------------------------------------
+    # Hopkins Statistic
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def hopkins_statistic(
+        data: np.ndarray,
+        sample_size: Optional[int] = None,
+        random_state: int = 42,
+    ) -> float:
+        """Compute the Hopkins statistic to assess clustering tendency.
+
+        A value close to 0.5 means the data is uniformly distributed (no
+        clusters).  A value close to 1.0 indicates strong clustering
+        tendency.  A typical threshold is 0.75.
+
+        Parameters
+        ----------
+        data : np.ndarray
+            Feature matrix of shape (n_samples, n_features).  Should be
+            scaled before calling this method.
+        sample_size : int, optional
+            Number of random sample points.  Defaults to
+            ``min(n_samples // 10, 100)``.
+        random_state : int, optional
+            Random seed (default 42).
+
+        Returns
+        -------
+        float
+            Hopkins statistic in [0, 1].
+        """
+        rng = np.random.default_rng(random_state)
+        n_samples, n_features = data.shape
+
+        if sample_size is None:
+            sample_size = min(n_samples // 10, 100)
+        sample_size = max(sample_size, 5)
+
+        # Random points within the data bounding box
+        mins = data.min(axis=0)
+        maxs = data.max(axis=0)
+        random_points = rng.uniform(mins, maxs, size=(sample_size, n_features))
+
+        # Random sample of actual data points
+        sample_indices = rng.choice(n_samples, size=sample_size, replace=False)
+        sample_points = data[sample_indices]
+
+        from sklearn.neighbors import NearestNeighbors
+
+        nn = NearestNeighbors(n_neighbors=1)
+        nn.fit(data)
+
+        # Distances from random points to nearest real point
+        u_distances, _ = nn.kneighbors(random_points)
+
+        # Distances from sample points to nearest OTHER real point
+        nn_sample = NearestNeighbors(n_neighbors=2)
+        nn_sample.fit(data)
+        w_distances, _ = nn_sample.kneighbors(sample_points)
+        w_distances = w_distances[:, 1]  # second neighbor (first is itself)
+
+        u_sum = u_distances.sum()
+        w_sum = w_distances.sum()
+
+        if u_sum + w_sum == 0:
+            return 0.5
+
+        return float(u_sum / (u_sum + w_sum))
+
+    # ------------------------------------------------------------------
+    # GMM clustering
+    # ------------------------------------------------------------------
+
+    def cluster_gmm(
+        self,
+        rfm: pd.DataFrame,
+        k: int = 4,
+        transform: str = "log",
+        random_state: int = 42,
+    ) -> Tuple[pd.DataFrame, GaussianMixture, object, Dict[str, float]]:
+        """Run Gaussian Mixture Model clustering on RFM features.
+
+        GMM is more flexible than K-Means as it allows elliptical cluster
+        shapes, which better fits the skewed distributions typical in
+        RFM data.
+
+        Parameters
+        ----------
+        rfm : pd.DataFrame
+            Customer-level RFM DataFrame.
+        k : int, optional
+            Number of mixture components (default 4).
+        transform : str, optional
+            ``"log"`` or ``"yeo-johnson"`` (default ``"log"``).
+        random_state : int, optional
+            Random seed (default 42).
+
+        Returns
+        -------
+        rfm : pd.DataFrame
+            DataFrame with ``GMM_Cluster`` column.
+        model : GaussianMixture
+            Fitted GMM estimator.
+        transformer : object
+            Fitted scaler/transformer.
+        metrics : dict
+            ``silhouette_score``, ``davies_bouldin_score``, ``bic``, ``aic``.
+        """
+        rfm = rfm.copy()
+        scaled, transformer = self._preprocess_features(rfm, method=transform)
+
+        model = GaussianMixture(
+            n_components=k,
+            covariance_type="full",
+            random_state=random_state,
+            n_init=5,
+        )
+        labels = model.fit_predict(scaled)
+        rfm["GMM_Cluster"] = labels
+
+        metrics = {
+            "silhouette_score": float(silhouette_score(scaled, labels)),
+            "davies_bouldin_score": float(davies_bouldin_score(scaled, labels)),
+            "bic": float(model.bic(scaled)),
+            "aic": float(model.aic(scaled)),
+        }
+
+        return rfm, model, transformer, metrics
+
+    # ------------------------------------------------------------------
+    # Algorithm comparison
+    # ------------------------------------------------------------------
+
+    def compare_algorithms(
+        self,
+        rfm: pd.DataFrame,
+        k: int = 4,
+        random_state: int = 42,
+    ) -> pd.DataFrame:
+        """Compare K-Means and GMM across preprocessing methods.
+
+        Runs four combinations:
+            1. K-Means + log-transform
+            2. K-Means + Yeo-Johnson
+            3. GMM + log-transform
+            4. GMM + Yeo-Johnson
+
+        Also computes the Hopkins statistic for each preprocessing
+        method to assess clustering tendency.
+
+        Parameters
+        ----------
+        rfm : pd.DataFrame
+            Customer-level RFM DataFrame.
+        k : int, optional
+            Number of clusters / components (default 4).
+        random_state : int, optional
+            Random seed (default 42).
+
+        Returns
+        -------
+        results : pd.DataFrame
+            One row per combination with columns: ``algorithm``,
+            ``transform``, ``silhouette``, ``davies_bouldin``,
+            ``hopkins``.  GMM rows also include ``bic`` and ``aic``.
+        """
+        records = []
+
+        for transform in ["log", "yeo-johnson"]:
+            scaled, _ = self._preprocess_features(rfm, method=transform)
+            hopkins = self.hopkins_statistic(scaled, random_state=random_state)
+
+            # K-Means
+            km = KMeans(n_clusters=k, random_state=random_state, n_init=10)
+            km_labels = km.fit_predict(scaled)
+            records.append({
+                "algorithm": "K-Means",
+                "transform": transform,
+                "silhouette": float(silhouette_score(scaled, km_labels)),
+                "davies_bouldin": float(davies_bouldin_score(scaled, km_labels)),
+                "hopkins": hopkins,
+                "bic": None,
+                "aic": None,
+            })
+
+            # GMM
+            gmm = GaussianMixture(
+                n_components=k,
+                covariance_type="full",
+                random_state=random_state,
+                n_init=5,
+            )
+            gmm_labels = gmm.fit_predict(scaled)
+            records.append({
+                "algorithm": "GMM",
+                "transform": transform,
+                "silhouette": float(silhouette_score(scaled, gmm_labels)),
+                "davies_bouldin": float(davies_bouldin_score(scaled, gmm_labels)),
+                "hopkins": hopkins,
+                "bic": float(gmm.bic(scaled)),
+                "aic": float(gmm.aic(scaled)),
+            })
 
         return pd.DataFrame(records)
 
