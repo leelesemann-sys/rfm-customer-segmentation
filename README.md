@@ -1,5 +1,7 @@
 # RFM Customer Segmentation - ML-Driven Approach
 
+> **Language:** English | [Deutsch](README.de.md)
+
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/tests-61%20passed-brightgreen.svg)](https://github.com/leelesemann-sys/rfm-customer-segmentation/actions/workflows/test.yml)
 [![Coverage](https://raw.githubusercontent.com/leelesemann-sys/rfm-customer-segmentation/main/.github/badges/coverage.svg)](https://github.com/leelesemann-sys/rfm-customer-segmentation/actions/workflows/test.yml)
